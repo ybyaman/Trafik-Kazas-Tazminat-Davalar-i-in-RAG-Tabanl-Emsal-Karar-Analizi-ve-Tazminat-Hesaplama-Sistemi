@@ -1,5 +1,5 @@
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -321,7 +321,7 @@ def mevcut_verileri_yukle_ve_siniflandir() -> Tuple[List[Dict], List[Dict]]:
         )
         k["sayfa_no"] = k.get("sayfa_no", 1)
         k["indirme_zamani"] = k.get(
-            "indirme_zamani", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "indirme_zamani", datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S")
         )
         k["hesap_dogrulama_adayi"] = hesap_dogrulama_kontrolu(icerik)
 
@@ -691,7 +691,7 @@ def portal_uzerinden_sorgulari_tara(
             "durum": durum,
             "arama_kelimesi": etiket,
             "sayfa_no": sayfa_no,
-            "indirme_zamani": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "indirme_zamani": datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S"),
             "hesap_dogrulama_adayi": hesap_adayi,
             "icerik_hash": yeni_hash,
             "icerik": temiz_metin,

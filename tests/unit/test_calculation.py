@@ -45,11 +45,13 @@ def test_parameters_loaded_as_decimal_and_versioned():
 
 def test_unverified_parameter_warnings():
     params = load_parameters()
-    warnings_unverified = get_param_warnings(params, ["asgari_ucret.net"])
+    warnings_unverified = get_param_warnings(params, ["harc_2026.bilirkisi_tahmini"])
     assert len(warnings_unverified) == 1
-    assert "parametre asgari_ucret.net teyit edilmemiştir" in warnings_unverified[0]
+    assert "parametre harc_2026.bilirkisi_tahmini teyit edilmemiştir" in warnings_unverified[0]
 
-    warnings_verified = get_param_warnings(params, ["genel_sartlar_2021.iskonto"])
+    warnings_verified = get_param_warnings(
+        params, ["asgari_ucret.net", "genel_sartlar_2021.iskonto", "aaut_2026"]
+    )
     assert warnings_verified == []
 
 
@@ -87,7 +89,7 @@ def test_temporary_disability_falls_back_to_minimum_wage():
     res = item.compute(case, params)
     assert isinstance(res["amount"], Decimal)
     assert res["amount"] == Decimal("56151.00")
-    assert any("parametre asgari_ucret.net teyit edilmemiştir" in w for w in res["warnings"])
+    assert res["inputs"]["monthly_net_income"] == Decimal("28075.50")
 
 
 def test_treatment_item_hand_calculated_and_sgk_deduction():
@@ -168,10 +170,52 @@ def test_csv_life_tables_load_and_unknown_table_raises():
     full_a = compute_annuity_due(trh, 30, Decimal("0.0165"))
     assert total_a == full_a
     assert abs((active_a + passive_a) - full_a) <= Decimal("0.000002")
-    assert get_remaining_life_expectancy(trh, 30) > Decimal(40)
+    assert get_remaining_life_expectancy(trh, 30) == Decimal("44.45")
+    assert get_remaining_life_expectancy(trfh, 30) == Decimal("49.00")
 
     with pytest.raises(ValueError, match="Bilinmeyen yaşam tablosu"):
         load_life_table("PMF-1931")
+
+
+def test_official_ek7_life_table_actuarial_comparison():
+    """04.12.2021 tarih ve 31679 sayılı Resmî Gazete Genel Şartlar Ek-7 (s. 25-28) resmî
+    tablo doğrulaması ve komütasyon sütunları (Dx, Nx) ile bağımsız aktüeryal karşılaştırma:
+    - Yaş 30 Erkek için resmî Ek-7 tablosunda:
+      qx = 0.000973, ex = 44.45, D_30 = 58853.30, N_30 = 1852738.74
+      Yaş 65 Erkek için: D_65 = 26650.31, N_65 = 337754.82
+    - Komütasyon sütunlarından bağımsız aktüeryal anüite katsayıları:
+      ä_30 (toplam) = N_30 / D_30 = 1852738.74 / 58853.30 = 31.480626
+      ä_30:35| (aktif) = (N_30 - N_65) / D_30 = 1514983.92 / 58853.30 = 25.741699
+      35|ä_30 (pasif) = N_65 / D_30 = 337754.82 / 58853.30 = 5.738927
+    """
+    trh_male = load_life_table("TRH-2010", gender="E")
+    trh_female = load_life_table("TRH-2010", gender="K")
+
+    # 1. İnterpolasyon olmadığının kontrolü (20-29 yaş arasında qx azalış ve artış gösterir)
+    assert trh_male[23]["qx"] == Decimal("0.000981")
+    assert trh_male[24]["qx"] == Decimal("0.000955")
+    assert trh_male[25]["qx"] == Decimal("0.000919")
+    assert trh_male[26]["qx"] == Decimal("0.000905")
+    assert trh_male[0]["ex"] == Decimal("71.93")
+    assert trh_male[1]["ex"] == Decimal("72.35")
+    assert trh_female[0]["ex"] == Decimal("78.02")
+
+    # 2. Resmî Ek-7 Dx/Nx komütasyon sütunları ile motorun anüite hesabı karşılaştırması
+    d_30 = Decimal("58853.30")
+    n_30 = Decimal("1852738.74")
+    n_65 = Decimal("337754.82")
+
+    official_active_annuity = (n_30 - n_65) / d_30
+    official_passive_annuity = n_65 / d_30
+    official_total_annuity = n_30 / d_30
+
+    active_a, passive_a, total_a = compute_split_annuity_due(
+        trh_male, start_age=30, active_end_age=65, discount_rate=Decimal("0.0165")
+    )
+    # Basılı tablodaki tam sayı lx yuvarlaması kaynaklı fark 0.0002'den küçüktür
+    assert abs(active_a - official_active_annuity) < Decimal("0.0002")
+    assert abs(passive_a - official_passive_annuity) < Decimal("0.0002")
+    assert abs(total_a - official_total_annuity) < Decimal("0.0002")
 
 
 # --- (e) permanent_disability.py elle hesaplanmış testler ---
@@ -223,7 +267,7 @@ def test_permanent_disability_hand_calculated_yargitay(tmp_path: Path):
     assert res["inputs"]["past_amount"] == Decimal("36000.00")
     assert res["inputs"]["future_amount"] == Decimal("346143.60")
     assert res["amount"] == Decimal("382143.60")
-    assert any("resmî Genel Şartlar Ek-7 tablosu değildir" in w for w in res["warnings"])
+    assert not any("yaklaşık değerlerdir" in w for w in res["warnings"])
     assert any("Geçmiş (kazanılmış) dönem kaybı" in w for w in res["warnings"])
 
 
@@ -439,13 +483,13 @@ def test_statute_of_limitations_warnings():
 # --- (h) costs.py elle hesaplanmış testler ---
 
 
-def test_costs_hand_calculated_and_aaut_warning():
+def test_costs_hand_calculated_with_official_tariffs():
     """Elle hesap: Dava değeri 100.000,00 TL
-    - Başvurma harcı: 732,00 TL
-    - Nispi karar ve ilam harcı: 100.000 * 68,31 / 1000 = 6.831,00 TL
-    - Peşin harç (1/4 varsayımı): 6.831,00 * 0.25 = 1.707,75 TL
-    - Bilirkişi ücreti (varsayılan tahmini): 5.000,00 TL
-    - AAÜT 2026 null olduğundan vekâlet ücreti None ve uyarı döner.
+    - Başvurma harcı: 732,00 TL (Harçlar Kanunu Genel Tebliği Seri No: 98)
+    - Nispi karar ve ilam harcı: 100.000 * 68,31 / 1000 = 6.831,00 TL (Harçlar Kanunu 1 Sayılı Tarife)
+    - Peşin harç (1/4): 6.831,00 * 0.25 = 1.707,75 TL (Harçlar Kanunu m. 28/1-a)
+    - Bilirkişi ücreti: 5.000,00 TL (tahmini)
+    - AAÜT 2026: 100.000 TL için nispi %16 = 16.000 TL, maktu alt sınır 45.000 TL -> 45.000,00 TL
     """
     params = load_parameters()
     costs = calculate_costs(Decimal("100000.00"), params)
@@ -455,20 +499,45 @@ def test_costs_hand_calculated_and_aaut_warning():
     assert costs["pesin_harc"] == Decimal("1707.75")
     assert costs["bilirkisi_ucreti"] == Decimal("5000.00")
     assert costs["bilirkisi_etiketi"] == "tahmini"
-    assert costs["vekalet_ucreti"] is None
+    assert costs["vekalet_ucreti"] == Decimal("45000.00")
     assert costs["total_upfront_costs"] == Decimal("7439.75")
-    assert any("AAÜT 2026" in w for w in costs["warnings"])
-    assert any("Peşin harç" in w for w in costs["warnings"])
+    assert costs["total_judgment_costs"] == Decimal("57563.00")
+    assert any("parametre harc_2026.bilirkisi_tahmini teyit edilmemiştir" in w for w in costs["warnings"])
 
 
-def test_costs_with_populated_aaut_brackets():
+def test_costs_fallback_when_aaut_is_none():
     params = load_parameters()
-    params["aaut_2026"] = {
-        "maktu_alt_sinir": Decimal("30000.00"),
-        "dilimler": [
-            {"dilim_tutari": Decimal("400000.00"), "oran": Decimal("0.16")},
-            {"dilim_tutari": None, "oran": Decimal("0.15")},
-        ],
-    }
-    costs = calculate_costs(Decimal("500000.00"), params)
-    assert costs["vekalet_ucreti"] == Decimal("79000.00")
+    params["aaut_2026"] = None
+    costs = calculate_costs(Decimal("100000.00"), params)
+    assert costs["vekalet_ucreti"] is None
+    assert any("AAÜT 2026" in w for w in costs["warnings"])
+
+
+def test_costs_higher_claim_amount_progressive_aaut():
+    """1.000.000,00 TL dava değeri için AAÜT 2026 hesabı:
+    - İlk 600.000 TL * %16 = 96.000 TL
+    - Kalan 400.000 TL * %15 = 60.000 TL
+    - Toplam = 156.000,00 TL
+    """
+    params = load_parameters()
+    costs = calculate_costs(Decimal("1000000.00"), params)
+    assert costs["vekalet_ucreti"] == Decimal("156000.00")
+
+
+def test_costs_aaut_above_18_6m_final_brackets():
+    """20.000.000,00 TL (> 18,6M TL) dava değeri için AAÜT 2026 tüm dilimlerin elle hesabı:
+    1) İlk 600.000 TL * %16       =  96.000,00 TL (kümülatif: 600.000 TL)
+    2) Sonraki 600.000 TL * %15   =  90.000,00 TL (kümülatif: 1.200.000 TL)
+    3) Sonraki 1.200.000 TL * %14 = 168.000,00 TL (kümülatif: 2.400.000 TL)
+    4) Sonraki 1.200.000 TL * %13 = 156.000,00 TL (kümülatif: 3.600.000 TL)
+    5) Sonraki 1.800.000 TL * %11 = 198.000,00 TL (kümülatif: 5.400.000 TL)
+    6) Sonraki 2.400.000 TL * %8  = 192.000,00 TL (kümülatif: 7.800.000 TL)
+    7) Sonraki 3.000.000 TL * %5  = 150.000,00 TL (kümülatif: 10.800.000 TL)
+    8) Sonraki 3.600.000 TL * %3  = 108.000,00 TL (kümülatif: 14.400.000 TL)
+    9) Sonraki 4.200.000 TL * %2  =  84.000,00 TL (kümülatif: 18.600.000 TL)
+    10) 18.600.000 TL üzeri 1.400.000 TL * %1 = 14.000,00 TL (toplam: 20.000.000 TL)
+    Toplam vekâlet ücreti = 1.242.000,00 + 14.000,00 = 1.256.000,00 TL
+    """
+    params = load_parameters()
+    costs = calculate_costs(Decimal("20000000.00"), params)
+    assert costs["vekalet_ucreti"] == Decimal("1256000.00")

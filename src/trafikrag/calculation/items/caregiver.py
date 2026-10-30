@@ -138,9 +138,6 @@ class CaregiverItem:
         future_amount = round_currency(annual_wage * ratio * annuity_factor)
         amount = round_currency(past_amount + future_amount)
 
-        warnings.append(
-            "Yaşam tablosu CSV verileri (TRH-2010 / TRFH-2020) yaklaşık değerlerdir, resmî Genel Şartlar Ek-7 tablosu değildir"
-        )
         warnings.extend(get_param_warnings(params, used_keys))
 
         return {

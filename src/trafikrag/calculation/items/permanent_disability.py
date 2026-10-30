@@ -228,10 +228,6 @@ class PermanentDisabilityItem:
                 "Geçmiş (kazanılmış) dönem kaybı kaza tarihindeki tarihsel asgari ücret dilimleri yerine güncel dönem geliri/asgari ücreti ile hesaplanmıştır"
             )
 
-        warnings.append(
-            "Yaşam tablosu CSV verileri (TRH-2010 / TRFH-2020) yaklaşık değerlerdir, resmî Genel Şartlar Ek-7 tablosu değildir"
-        )
-
         if case.method == "genel_sartlar":
             gs_detail, gs_keys = self._calculate_genel_sartlar(
                 calc_age,

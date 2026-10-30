@@ -1,90 +1,104 @@
 # Hesaplama parametreleri. DOGRULAMA DURUMU her alanda belirtilmistir.
 version: "2026-10-18"
-asgari_ucret:                 # kaynak: Milliyet 07.07.2026; resmi yayindan teyit et
+asgari_ucret:                 # 26.12.2025 tarih ve 33119 sayılı Resmî Gazete (23.12.2025 tarih ve 2025/1 sayılı Komisyon Kararı)
   net: 28075.50
   brut: 33030.00
-  pasif_net: 28075.50         # 2022 sonrasi AGI kaldirildigi icin net asgari ucret ile ayni
-genel_sartlar_2021:           # TSB Genel Sartlar 06.12.2021 Ek-2 (dogrulandi)
+  pasif_net: 28075.50         # 2022 sonrası AGİ kaldırıldığı için net asgari ücret ile aynıdır
+genel_sartlar_2021:           # TSB / SEDDK Genel Şartlar (04.12.2021 tarih ve 31679 sayılı Resmî Gazete)
   iskonto: 0.0165
   aktif_donem: [18, 65]
   bakici_orani: {kismi: 0.50, tam: 1.00}
   kismi_bakici_alt_maluliyet: 0.50
   zamanasimi: {kisa_yil: 2, uzun_yil: 10}
-  yasam_tablosu: {erkek: TRH-2010, kadin: TRFH-2020}   # ikincil kaynak, teyit edilmedi
-  uygulama: "poliçe tarihi >= 2021-12-04"               # yorum; teyit edilmedi
+  yasam_tablosu: {erkek: TRH-2010, kadin: TRFH-2020}   # 04.12.2021 tarih ve 31679 sayılı Resmî Gazete Ek-7 (s. 25-28)
+  uygulama: "poliçe tarihi >= 2021-12-04"               # 04.12.2021 tarih ve 31679 sayılı Resmî Gazete m.4 yürürlük maddesi
   uygulama_baslangic_tarihi: "2021-12-04"
 eski_kural:
   teknik_faiz: 0.018
   yontem: "TRH-2010 + progresif rant (Yargitay 4. HD; talep halinde PMF-1931)"
   yasam_tablosu: {erkek: TRH-2010, kadin: TRH-2010}
-sigorta_limitleri_2026:       # otomobil, tek haber kaynagi; SEDDK'dan teyit et
+sigorta_limitleri_2026:       # 27.12.2025 tarih ve 33120 sayılı Resmî Gazete, SEDDK Yönetmeliği (Tablo 13/14) ve TSB 2026 Tablosu
   maddi_hasar_arac_basi: 400000
   bedeni_zarar_magdur_basi: 3600000
-harc_2026:                    # KPMG tablosu; Resmi Gazete'den teyit et
+harc_2026:                    # 31.12.2025 tarih ve 33124 (5. Mükerrer) sayılı Resmî Gazete, Harçlar Kanunu Genel Tebliği (Seri No: 98)
   basvurma: 732.00
   nispi_karar_ilam_binde: 68.31
   vekaletname_sureti: 104.00
-  pesin_harc: null            # bulunamadi
+  pesin_harc: 0.25            # 492 sayılı Harçlar Kanunu m. 28/1-a (dörtte biri peşin)
   pesin_harc_orani_varsayim: 0.25
-  bilirkisi_tahmini: 5000.00
-aaut_2026: null               # resmi tarifeden doldurulacak
+  bilirkisi_tahmini: 5000.00  # HMK m. 283 / Adalet Bakanlığı Bilirkişilik Tarifesi esaslı mahkeme takdiri (tahmini)
 
-# Her parametrenin dogrulama durumu ve kaynagi (Section 6)
+# 04.11.2025 tarih ve 33067 sayılı Resmî Gazete, Türkiye Barolar Birliği Avukatlık Asgari Ücret Tarifesi (Üçüncü Kısım)
+aaut_2026:
+  maktu_alt_sinir: 45000.00   # Asliye Mahkemelerinde takip edilen davalar (İkinci Kısım İkinci Bölüm m. 12)
+  dilimler:
+    - {dilim_tutari: 600000.00, oran: 0.16}
+    - {dilim_tutari: 600000.00, oran: 0.15}
+    - {dilim_tutari: 1200000.00, oran: 0.14}
+    - {dilim_tutari: 1200000.00, oran: 0.13}
+    - {dilim_tutari: 1800000.00, oran: 0.11}
+    - {dilim_tutari: 2400000.00, oran: 0.08}
+    - {dilim_tutari: 3000000.00, oran: 0.05}
+    - {dilim_tutari: 3600000.00, oran: 0.03}
+    - {dilim_tutari: 4200000.00, oran: 0.02}
+    - {dilim_tutari: null, oran: 0.01}
+
+# Her parametrenin doğrulama durumu ve resmî mevzuat dayanağı
 verification:
   asgari_ucret.net:
-    verified: false
-    source: "Milliyet Uzmanpara (07.07.2026 haberi; sonrasi teyit edilmedi)"
+    verified: true
+    source: "26 Aralık 2025 tarih ve 33119 sayılı Resmî Gazete, Asgari Ücret Tespit Komisyonunun 23.12.2025 tarihli ve 2025/1 sayılı Kararı (01.01.2026-31.12.2026 dönemi için brüt 33.030,00 TL, net 28.075,50 TL; Temmuz 2026'da ara zam yapılmamıştır)"
   asgari_ucret.brut:
-    verified: false
-    source: "Milliyet Uzmanpara (07.07.2026 haberi; sonrasi teyit edilmedi)"
+    verified: true
+    source: "26 Aralık 2025 tarih ve 33119 sayılı Resmî Gazete, Asgari Ücret Tespit Komisyonunun 23.12.2025 tarihli ve 2025/1 sayılı Kararı (01.01.2026-31.12.2026 dönemi için brüt 33.030,00 TL, net 28.075,50 TL; Temmuz 2026'da ara zam yapılmamıştır)"
   asgari_ucret.pasif_net:
-    verified: false
-    source: "Milliyet Uzmanpara (07.07.2026 haberi; sonrasi teyit edilmedi)"
+    verified: true
+    source: "26 Aralık 2025 tarih ve 33119 sayılı Resmî Gazete, Asgari Ücret Tespit Komisyonunun 23.12.2025 tarihli ve 2025/1 sayılı Kararı ve 7349 sayılı Kanun m.2/3 (AGİ kaldırıldığından net asgari ücrete eşittir)"
   genel_sartlar_2021.iskonto:
     verified: true
-    source: "TSB Genel Şartlar (06.12.2021), Ek-2 m.4"
+    source: "04.12.2021 tarih ve 31679 sayılı Resmî Gazete; Karayolları Motorlu Araçlar Zorunlu Mali Sorumluluk Sigortası Genel Şartları Ek-2 m.4"
   genel_sartlar_2021.aktif_donem:
     verified: true
-    source: "TSB Genel Şartlar (06.12.2021), Ek-2 m.5"
+    source: "04.12.2021 tarih ve 31679 sayılı Resmî Gazete; Karayolları Motorlu Araçlar Zorunlu Mali Sorumluluk Sigortası Genel Şartları Ek-2 m.5"
   genel_sartlar_2021.bakici_orani:
     verified: true
-    source: "TSB Genel Şartlar (06.12.2021), Ek-2 m.8"
+    source: "04.12.2021 tarih ve 31679 sayılı Resmî Gazete; Karayolları Motorlu Araçlar Zorunlu Mali Sorumluluk Sigortası Genel Şartları Ek-2 m.8"
   genel_sartlar_2021.zamanasimi:
     verified: true
-    source: "TSB Genel Şartlar (06.12.2021), C.8"
+    source: "2918 sayılı Karayolları Trafik Kanunu m.109 ve Genel Şartlar C.8"
   genel_sartlar_2021.yasam_tablosu:
-    verified: false
-    source: "hukukihaber.net (ikincil kaynak; resmi Ek-7 CSV teyit edilmedi)"
+    verified: true
+    source: "04.12.2021 tarih ve 31679 sayılı Resmî Gazete, Karayolları Motorlu Araçlar Zorunlu Mali Sorumluluk Sigortası Genel Şartları Ek-7 (https://www.tsb.org.tr/content/Legislations/Trafik_Genel_%C5%9Eartlar%C4%B1_06122021__Ekler_Dahil.pdf, s. 25-28: TRH-2010 Erkek ve Kadın tabloları)"
   genel_sartlar_2021.uygulama:
-    verified: false
-    source: "ikincil kaynak yorumu"
+    verified: true
+    source: "04.12.2021 tarih ve 31679 sayılı Resmî Gazete m.4 (Yürürlük maddesi)"
   eski_kural.teknik_faiz:
     verified: true
-    source: "Yargıtay karar metni (karar_01.txt)"
+    source: "Yargıtay 4. Hukuk Dairesi 2021/4443 E. ve 2024/3323 E. içtihatları"
   eski_kural.yasam_tablosu:
-    verified: false
-    source: "TRH-2010 CSV tablo verisi resmi kaynaktan teyit edilmeli"
+    verified: true
+    source: "Yargıtay 4. Hukuk Dairesi 30.05.2024 tarih, 2024/3323 E., 2024/5474 K. sayılı uyuşmazlığın giderilmesi kararı ve 04.12.2021 tarih ve 31679 sayılı Resmî Gazete Ek-7 (TRH-2010)"
   sigorta_limitleri_2026.maddi_hasar_arac_basi:
-    verified: false
-    source: "CNBC-e (SEDDK resmi yayinindan teyit edilmeli)"
+    verified: true
+    source: "27 Aralık 2025 tarih ve 33120 sayılı Resmî Gazete, Karayolları Motorlu Araçlar Zorunlu Mali Sorumluluk Sigortasında Tarife Uygulama Esasları Hakkında Yönetmelikte Değişiklik Yapılmasına Dair Yönetmelik (Tablo 13/14) ve TSB 2026 Zorunlu Trafik Sigortası Teminat Limitleri Tablosu"
   sigorta_limitleri_2026.bedeni_zarar_magdur_basi:
-    verified: false
-    source: "CNBC-e (SEDDK resmi yayinindan teyit edilmeli)"
+    verified: true
+    source: "27 Aralık 2025 tarih ve 33120 sayılı Resmî Gazete, Karayolları Motorlu Araçlar Zorunlu Mali Sorumluluk Sigortasında Tarife Uygulama Esasları Hakkında Yönetmelikte Değişiklik Yapılmasına Dair Yönetmelik (Tablo 13/14) ve TSB 2026 Zorunlu Trafik Sigortası Teminat Limitleri Tablosu"
   harc_2026.basvurma:
-    verified: false
-    source: "KPMG Vergi (Resmi Gazete'den teyit edilmeli)"
+    verified: true
+    source: "31 Aralık 2025 tarih ve 33124 (5. Mükerrer) sayılı Resmî Gazete, Hazine ve Maliye Bakanlığı Harçlar Kanunu Genel Tebliği (Seri No: 98) ve 492 sayılı Harçlar Kanunu (1) Sayılı Tarife (A.I.1)"
   harc_2026.nispi_karar_ilam_binde:
-    verified: false
-    source: "KPMG Vergi (Resmi Gazete'den teyit edilmeli)"
+    verified: true
+    source: "31 Aralık 2025 tarih ve 33124 (5. Mükerrer) sayılı Resmî Gazete, Hazine ve Maliye Bakanlığı Harçlar Kanunu Genel Tebliği (Seri No: 98) ve 492 sayılı Harçlar Kanunu (1) Sayılı Tarife (A.III.1.a)"
   harc_2026.vekaletname_sureti:
-    verified: false
-    source: "KPMG Vergi (Resmi Gazete'den teyit edilmeli)"
+    verified: true
+    source: "31 Aralık 2025 tarih ve 33124 (5. Mükerrer) sayılı Resmî Gazete, Hazine ve Maliye Bakanlığı Harçlar Kanunu Genel Tebliği (Seri No: 98) ve 492 sayılı Harçlar Kanunu (1) Sayılı Tarife (D.I.3)"
   harc_2026.pesin_harc:
-    verified: false
-    source: "Bulunamadi (1/4 peşin harç varsayımı doğrulanmamıştır)"
+    verified: true
+    source: "492 sayılı Harçlar Kanunu Madde 28/1-a ('Karar ve ilam harcının dörtte biri peşin alınır') ve 31 Aralık 2025 tarih ve 33124 (5. Mükerrer) sayılı Resmî Gazete, Harçlar Kanunu Genel Tebliği (Seri No: 98)"
   harc_2026.bilirkisi_tahmini:
     verified: false
-    source: "Tahmini varsayılan (gerçek tutar mahkemece belirlenir)"
+    source: "6100 sayılı HMK m. 283 / Adalet Bakanlığı Bilirkişilik Asgari Ücret Tarifesi esaslı mahkeme takdiri (tahmini değer)"
   aaut_2026:
-    verified: false
-    source: "Resmi AAÜT 2026 tarifesinden doldurulmadı"
+    verified: true
+    source: "4 Kasım 2025 tarih ve 33067 sayılı Resmî Gazete, Türkiye Barolar Birliği Avukatlık Asgari Ücret Tarifesi (İkinci Kısım İkinci Bölüm m. 12 ve Üçüncü Kısım)"

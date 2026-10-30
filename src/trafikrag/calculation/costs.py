@@ -53,7 +53,9 @@ def calculate_costs(
     used_keys: list[str] = [
         "harc_2026.basvurma",
         "harc_2026.nispi_karar_ilam_binde",
+        "harc_2026.pesin_harc",
         "harc_2026.bilirkisi_tahmini",
+        "aaut_2026",
     ]
 
     harc_cfg = params["harc_2026"]
@@ -65,7 +67,6 @@ def calculate_costs(
         pesin_harc_orani = to_decimal(harc_cfg["pesin_harc"])
         pesin_harc = round_currency(nispi_karar_ilam_harci * pesin_harc_orani)
     else:
-        used_keys.append("harc_2026.pesin_harc")
         varsayim_oran = to_decimal(harc_cfg.get("pesin_harc_orani_varsayim", Decimal("0.25")))
         pesin_harc = round_currency(nispi_karar_ilam_harci * varsayim_oran)
         warnings.append(
@@ -77,7 +78,6 @@ def calculate_costs(
 
     aaut_cfg = params.get("aaut_2026")
     if aaut_cfg is None:
-        used_keys.append("aaut_2026")
         vekalet_ucreti: Decimal | None = None
         warnings.append(
             "AAÜT 2026 değerleri parametre dosyasında henüz boş olduğundan vekâlet ücreti hesaplanmamıştır"
@@ -108,7 +108,7 @@ def calculate_costs(
         "total_judgment_costs": total_judgment_costs,
         "formula": (
             "nispi_harc = dava_degeri * (binde_oran / 1000); "
-            "pesin_harc = nispi_harc * 0.25; "
+            "pesin_harc = nispi_harc * pesin_harc_orani; "
             "toplam_acilis_masrafi = basvurma_harci + pesin_harc + bilirkisi_ucreti"
         ),
         "parameter_version": version,
